@@ -39,6 +39,7 @@
             <div class="mb-2">
                 <label class="form-label">Status</label>
                 <input type="text" id="tik_status" class="form-control" readonly>
+                <input type="hidden" id="tik_status_val">
             </div>
 
             <button type="submit" class="btn btn-primary mt-3">Simpan</button>
@@ -56,7 +57,7 @@
         console.log("Query string:", window.location.search);
         console.log("ID dari parameter 'id':", idParam);
 
-       
+
         if (!idParam) {
             idParam = urlParams.get("tik_id");
             console.log("ID dari parameter 'tik_id':", idParam);
@@ -68,7 +69,7 @@
             document.getElementById("tik_id").value = idParam;
         }
 
-    
+
         async function loadDetail() {
             if (!idParam) {
                 document.getElementById("result").innerHTML = `<div class="alert alert-danger">ID tidak tersedia</div>`;
@@ -95,7 +96,9 @@
                 document.getElementById("tik_nama").value = t.tik_nama || "";
                 document.getElementById("tik_harga").value = t.tik_harga || "";
                 document.getElementById("tik_kuota").value = t.tik_kuota || "";
+                // Set visible label and store numeric status in hidden input so update preserves it
                 document.getElementById("tik_status").value = t.tik_status === "1" || t.tik_status === 1 ? "Tersedia" : "Tidak Tersedia";
+                document.getElementById("tik_status_val").value = (t.tik_status === undefined || t.tik_status === null) ? "0" : String(t.tik_status);
 
             } catch (err) {
                 console.error("Error:", err);
@@ -115,7 +118,8 @@
                 tik_id: document.getElementById("tik_id").value,
                 tik_nama: document.getElementById("tik_nama").value.trim(),
                 tik_harga: parseInt(document.getElementById("tik_harga").value),
-                tik_kuota: parseInt(document.getElementById("tik_kuota").value)
+                tik_kuota: parseInt(document.getElementById("tik_kuota").value),
+                tik_status: parseInt(document.getElementById("tik_status_val").value || '0')
             };
 
             try {
