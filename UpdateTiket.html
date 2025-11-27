@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Update Tiket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <br />
+    <br />
+    <div class="container">
+        <form id="input">
+            <h3>Update Tiket</h3>
+
+            <div class="mb-2">
+                <label class="form-label">ID Tiket</label>
+                <input type="text" id="tik_id" class="form-control" readonly>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Nama</label>
+                <input type="text" id="tik_nama" class="form-control" required>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Harga</label>
+                <input type="number" id="tik_harga" class="form-control" required>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Kuota</label>
+                <input type="number" id="tik_kuota" class="form-control" required>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">Status</label>
+                <input type="text" id="tik_status" class="form-control" readonly>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">Simpan</button>
+            <button type="button" class="btn btn-warning mt-3"
+                onclick="window.location.href='ReadTiket.html'">Kembali</button>
+            <div id="result" class="mt-3"></div>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let idParam = urlParams.get("id");
+
+        console.log("URL lengkap:", window.location.href);
+        console.log("Query string:", window.location.search);
+        console.log("ID dari parameter 'id':", idParam);
+
+       
+        if (!idParam) {
+            idParam = urlParams.get("tik_id");
+            console.log("ID dari parameter 'tik_id':", idParam);
+        }
+
+        if (!idParam) {
+            document.getElementById("result").innerHTML = `<div class="alert alert-danger">ID Tiket tidak ditemukan di URL</div>`;
+        } else {
+            document.getElementById("tik_id").value = idParam;
+        }
+
+    
+        async function loadDetail() {
+            if (!idParam) {
+                document.getElementById("result").innerHTML = `<div class="alert alert-danger">ID tidak tersedia</div>`;
+                return;
+            }
+
+            try {
+                const url = `https://asm.roniprsty.com/tiket/detail.php?tik_id=${idParam}`;
+                console.log("Fetch URL:", url);
+                const res = await fetch(url);
+                const json = await res.json();
+                console.log("Response:", json);
+
+                if (json.status !== "success") {
+                    document.getElementById("result").innerHTML =
+                        `<div class="alert alert-danger">${json.message}</div>`;
+                    return;
+                }
+
+                const t = json.data;
+                console.log("Data Tiket:", t);
+
+                // Isi form otomatis
+                document.getElementById("tik_nama").value = t.tik_nama || "";
+                document.getElementById("tik_harga").value = t.tik_harga || "";
+                document.getElementById("tik_kuota").value = t.tik_kuota || "";
+                document.getElementById("tik_status").value = t.tik_status === "1" || t.tik_status === 1 ? "Tersedia" : "Tidak Tersedia";
+
+            } catch (err) {
+                console.error("Error:", err);
+                document.getElementById("result").innerHTML =
+                    `<div class="alert alert-danger">Gagal mengambil data tiket: ${err.message}</div>`;
+            }
+        }
+
+        if (idParam) {
+            loadDetail();
+        }
+
+        document.getElementById("input").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const tiket = {
+                tik_id: document.getElementById("tik_id").value,
+                tik_nama: document.getElementById("tik_nama").value.trim(),
+                tik_harga: parseInt(document.getElementById("tik_harga").value),
+                tik_kuota: parseInt(document.getElementById("tik_kuota").value)
+            };
+
+            try {
+                const res = await fetch("https://asm.roniprsty.com/tiket/update.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(tiket),
+                });
+
+                const data = await res.json();
+                document.getElementById("result").innerHTML = `<div class="alert alert-${data.status === "success" ? "success" : "danger"}">${data.message}</div>`;
+
+                if (data.status === "success") {
+                    setTimeout(() => window.location.href = 'ReadTiket.html', 700);
+                }
+            } catch (err) {
+                document.getElementById("result").innerHTML = `<div class="alert alert-danger">Gagal menghubungi server</div>`;
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>
